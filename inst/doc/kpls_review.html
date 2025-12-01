@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+<meta name="date" content="2025-11-26" />
+
+<title>Kernel and Streaming PLS Methods in bigPLSR</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Kernel and Streaming PLS Methods in
+bigPLSR</h1>
+<h4 class="author">Frédéric Bertrand</h4>
+<address class="author_afil">
+Cedric, Cnam, Paris<br><a class="author_email" href="mailto:#"><a href="mailto:frederic.bertrand@lecnam.net" class="email">frederic.bertrand@lecnam.net</a></a>
+</address>
+<h4 class="date">2025-11-26</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#notation" id="toc-notation">Notation</a></li>
+<li><a href="#pseudo-code-for-bigplsr-algorithms" id="toc-pseudo-code-for-bigplsr-algorithms">Pseudo-code for bigPLSR
+algorithms</a>
+<ul>
+<li><a href="#simpls-densebigmem" id="toc-simpls-densebigmem">SIMPLS
+(dense/bigmem)</a></li>
+<li><a href="#nipals-densestreamed" id="toc-nipals-densestreamed">NIPALS
+(dense/streamed)</a></li>
+<li><a href="#kernel-pls-rkhs-dense-streamed" id="toc-kernel-pls-rkhs-dense-streamed">Kernel PLS / RKHS (dense &amp;
+streamed)</a></li>
+<li><a href="#double-rkhs-algorithm-rkhs_xy" id="toc-double-rkhs-algorithm-rkhs_xy">Double RKHS (
+<code>algorithm = &quot;rkhs_xy&quot;</code> )</a></li>
+<li><a href="#kalman-filter-pls-algorithm-kf_pls" id="toc-kalman-filter-pls-algorithm-kf_pls">Kalman-filter PLS
+(<code>algorithm = &quot;kf_pls&quot;</code>)</a></li>
+<li><a href="#centering-the-gram-matrix" id="toc-centering-the-gram-matrix">Centering the Gram matrix</a></li>
+</ul></li>
+<li><a href="#klpls-kernel-pls-dayal-macgregor" id="toc-klpls-kernel-pls-dayal-macgregor">KLPLS / Kernel PLS (Dayal
+&amp; MacGregor)</a></li>
+<li><a href="#streaming-gram-blocks-column--and-row-chunked" id="toc-streaming-gram-blocks-column--and-row-chunked">Streaming Gram
+blocks (column- and row-chunked)</a></li>
+<li><a href="#kernel-approximations-nystr%C3%B6m-and-random-fourier-features" id="toc-kernel-approximations-nyström-and-random-fourier-features">Kernel
+approximations: Nyström and Random Fourier Features</a></li>
+<li><a href="#kernel-logistic-pls-binary-classification" id="toc-kernel-logistic-pls-binary-classification">Kernel Logistic PLS
+(binary classification)</a></li>
+<li><a href="#sparse-kernel-pls-sketch" id="toc-sparse-kernel-pls-sketch">Sparse Kernel PLS (sketch)</a></li>
+<li><a href="#pls-in-rkhs-for-x-and-y-double-rkhs" id="toc-pls-in-rkhs-for-x-and-y-double-rkhs">PLS in RKHS for X and Y
+(double RKHS)</a></li>
+<li><a href="#kalman-filter-pls-kf-pls-streaming" id="toc-kalman-filter-pls-kf-pls-streaming">Kalman-Filter PLS (KF-PLS;
+streaming)</a></li>
+<li><a href="#api-quick-start" id="toc-api-quick-start">API quick
+start</a>
+<ul>
+<li><a href="#prediction-in-rkhs-pls" id="toc-prediction-in-rkhs-pls">Prediction in RKHS PLS</a></li>
+</ul></li>
+<li><a href="#dependency-overview-wrappers-c-entry-points" id="toc-dependency-overview-wrappers-c-entry-points">Dependency overview
+(wrappers → C++ entry points)</a></li>
+<li><a href="#references" id="toc-references">References</a></li>
+</ul>
+</div>
+
+<div id="notation" class="section level2">
+<h2>Notation</h2>
+<p>Let <span class="math inline">\(X \in \mathbb{R}^{n\times p}\)</span>
+and <span class="math inline">\(Y \in \mathbb{R}^{n\times m}\)</span>.
+We assume column-centered data unless stated otherwise. PLS extracts
+latent scores <span class="math inline">\(T=[t_1,\dots,t_a]\)</span>
+with loadings and weights so that covariance between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> along <span class="math inline">\(t_a\)</span> is maximized, with orthogonality
+constraints across components.</p>
+<p>For kernel methods, let <span class="math inline">\(\phi(\cdot)\)</span> be an implicit feature map
+and define the Gram matrix <span class="math inline">\(K_X = \Phi_X
+\Phi_X^\top\)</span> where <span class="math inline">\((K_X)_{ij} =
+k(x_i, x_j)\)</span>. The centering operator <span class="math inline">\(H = I_n -
+\frac{1}{n}\mathbf{1}\mathbf{1}^\top\)</span> yields a centered Gram
+<span class="math inline">\(\tilde K_X = H K_X H\)</span>.</p>
+</div>
+<div id="pseudo-code-for-bigplsr-algorithms" class="section level2">
+<h2>Pseudo-code for bigPLSR algorithms</h2>
+<p>The package implements several complementary extraction schemes. The
+following pseudo-code summarises the core loops.</p>
+<div id="simpls-densebigmem" class="section level3">
+<h3>SIMPLS (dense/bigmem)</h3>
+<ol style="list-style-type: decimal">
+<li>Compute centered cross-products <span class="math inline">\(C_{xx} =
+X^\top X\)</span>, <span class="math inline">\(C_{xy} = X^\top
+Y\)</span>.</li>
+<li>Initialise orthonormal basis <span class="math inline">\(V =
+[]\)</span>.</li>
+<li>For each component <span class="math inline">\(a = 1..A\)</span>:
+<ul>
+<li>Deflate <span class="math inline">\(C_{xy}\)</span> in the subspace
+spanned by <span class="math inline">\(V\)</span>.</li>
+<li>Extract <span class="math inline">\(q_a\)</span> as the dominant
+eigenvector of <span class="math inline">\(C_{xy}^\top
+C_{xy}\)</span>.</li>
+<li>Compute <span class="math inline">\(w_a = C_{xy} q_a\)</span> and
+normalise under the <span class="math inline">\(C_{xx}\)</span>-metric.</li>
+<li>Obtain loadings <span class="math inline">\(p_a = C_{xx}
+w_a\)</span> and regression weights <span class="math inline">\(c_a =
+C_{xy}^\top w_a\)</span>.</li>
+<li>Expand <span class="math inline">\(V \leftarrow [V,
+p_a]\)</span>.</li>
+</ul></li>
+<li>Form <span class="math inline">\(W = [w_a]\)</span>, <span class="math inline">\(P = [p_a]\)</span>, <span class="math inline">\(Q
+= [c_a]\)</span> and compute regression coefficients <span class="math inline">\(B = W (P^\top W)^{-1} Q^\top\)</span>.</li>
+</ol>
+</div>
+<div id="nipals-densestreamed" class="section level3">
+<h3>NIPALS (dense/streamed)</h3>
+<ol style="list-style-type: decimal">
+<li>Initialise <span class="math inline">\(t_a\)</span> from <span class="math inline">\(Y\)</span> (or <span class="math inline">\(X\)</span>).</li>
+<li>Iterate until convergence:
+<ul>
+<li><span class="math inline">\(w_a = X^\top t_a / (t_a^\top
+t_a)\)</span>, normalise <span class="math inline">\(w_a\)</span>.</li>
+<li><span class="math inline">\(t_a = X w_a\)</span>.</li>
+<li><span class="math inline">\(c_a = Y^\top t_a / (t_a^\top
+t_a)\)</span>.</li>
+<li><span class="math inline">\(u_a = Y c_a\)</span> (for
+multi-response).</li>
+</ul></li>
+<li>Deflate <span class="math inline">\(X \leftarrow X - t_a
+p_a^\top\)</span>, <span class="math inline">\(Y \leftarrow Y - t_a
+q_a^\top\)</span> and repeat for the next component.</li>
+</ol>
+</div>
+<div id="kernel-pls-rkhs-dense-streamed" class="section level3">
+<h3>Kernel PLS / RKHS (dense &amp; streamed)</h3>
+<ol style="list-style-type: decimal">
+<li>Form (or stream) the centered Gram matrix <span class="math inline">\(\tilde K_X\)</span>.</li>
+<li>At each iteration extract a dual weight <span class="math inline">\(\alpha_a\)</span> maximising covariance with <span class="math inline">\(Y\)</span>.</li>
+<li>Obtain the score <span class="math inline">\(t_a = \tilde K_X
+\alpha_a\)</span>, regress <span class="math inline">\(Y\)</span> on
+<span class="math inline">\(t_a\)</span> to get <span class="math inline">\(q_a\)</span> and deflate in the <span class="math inline">\(\tilde K_X\)</span> metric.</li>
+<li>Accumulate <span class="math inline">\(\alpha_a\)</span>, <span class="math inline">\(q_a\)</span> and the orthonormal basis for
+subsequent deflation steps.</li>
+</ol>
+</div>
+<div id="double-rkhs-algorithm-rkhs_xy" class="section level3">
+<h3>Double RKHS ( <code>algorithm = &quot;rkhs_xy&quot;</code> )</h3>
+<ol style="list-style-type: decimal">
+<li>Build (or approximate) Gram matrices for <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>.</li>
+<li>Extract dual directions <span class="math inline">\(\alpha_a\)</span> and <span class="math inline">\(\beta_a\)</span> so that the score pair <span class="math inline">\((t_a, u_a)\)</span> maximises covariance under
+both kernels.</li>
+<li>Use ridge-regularised projections to obtain regression weights.</li>
+<li>Store kernel centering statistics for prediction.</li>
+</ol>
+</div>
+<div id="kalman-filter-pls-algorithm-kf_pls" class="section level3">
+<h3>Kalman-filter PLS (<code>algorithm = &quot;kf_pls&quot;</code>)</h3>
+<ol style="list-style-type: decimal">
+<li>Maintain exponentially weighted means <span class="math inline">\(\mu_x, \mu_y\)</span>.</li>
+<li>Update cross-products <span class="math inline">\(C_{xx},
+C_{xy}\)</span> with forgetting factor <span class="math inline">\(\lambda\)</span> and optional process noise.</li>
+<li>Periodically call SIMPLS on the smoothed moments to recover
+regression coefficients consistent with the streamed state.</li>
+</ol>
+<p>Common kernels:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\text{Linear:}\quad&amp; k(x,z) = x^\top z \\
+\text{RBF:}\quad&amp; k(x,z) = \exp(-\gamma \|x-z\|^2) \\
+\text{Polynomial:}\quad&amp; k(x,z) = (\gamma\,x^\top z + c_0)^{d} \\
+\text{Sigmoid:}\quad&amp; k(x,z) = \tanh(\gamma\,x^\top z + c_0).
+\end{aligned}
+\]</span></p>
+</div>
+<div id="centering-the-gram-matrix" class="section level3">
+<h3>Centering the Gram matrix</h3>
+<p>Given <span class="math inline">\(K\in\mathbb{R}^{n\times
+n}\)</span>, the centered version is:</p>
+<p><span class="math display">\[
+\tilde K = H K H, \quad H = I_n - \tfrac{1}{n}\mathbf{1}\mathbf{1}^\top.
+\]</span></p>
+<hr />
+</div>
+</div>
+<div id="klpls-kernel-pls-dayal-macgregor" class="section level2">
+<h2>KLPLS / Kernel PLS (Dayal &amp; MacGregor)</h2>
+<p>We operate in the dual. Consider <span class="math inline">\(K_X\)</span> and <span class="math inline">\(K_{XY} = K_X Y\)</span>. At step <span class="math inline">\(a\)</span>, we extract a dual direction <span class="math inline">\(\alpha_a\)</span> so that the score <span class="math inline">\(t_a = \tilde K_X \alpha_a\)</span> maximizes
+covariance with <span class="math inline">\(Y\)</span>, subject to
+orthogonality in the RKHS metric:</p>
+<p><span class="math display">\[
+\max_{\alpha} \ \mathrm{cov}(t, Y) \quad
+\text{s.t.}\ \ t=\tilde K_X \alpha,\ \ t^\top t = 1,\ \ t^\top t_b = 0,\
+b&lt;a.
+\]</span></p>
+<p>A SIMPLS-style recursion in the dual:</p>
+<ol style="list-style-type: decimal">
+<li>Compute the cross-covariance operator <span class="math inline">\(C
+= \tilde K_X Y\)</span>.</li>
+<li>Extract a direction in <span class="math inline">\(\mathbb{R}^n\)</span> via dominant eigenvector of
+<span class="math inline">\(C C^\top\)</span> or by power
+iterations.</li>
+<li>Set <span class="math inline">\(t_a = \tilde K_X \alpha_a\)</span>,
+normalize <span class="math inline">\(t_a\)</span>.</li>
+<li>Regress <span class="math inline">\(Y\)</span> on <span class="math inline">\(t_a\)</span>: <span class="math inline">\(q_a =
+(t_a^\top t_a)^{-1} t_a^\top Y\)</span>.</li>
+<li>Deflate <span class="math inline">\(Y \leftarrow Y - t_a
+q_a^\top\)</span> and orthogonalize subsequent directions in the <span class="math inline">\(\tilde K_X\)</span>-metric.</li>
+</ol>
+<p>Prediction uses the dual coefficients; for a new <span class="math inline">\(x_\star\)</span>, <span class="math inline">\(k_\star = [k(x_\star, x_i)]_{i=1}^n\)</span> and
+<span class="math inline">\(t_\star = \tilde k_\star^\top
+\alpha\)</span>. When <span class="math inline">\(Y\)</span> is
+multivariate, apply steps component-wise with a shared <span class="math inline">\(t_a\)</span>.</p>
+<p><strong>In bigPLSR</strong><br />
+- Dense path: <code>algorithm=&quot;rkhs&quot;</code> builds <span class="math inline">\(\tilde K_X\)</span> (or an approximation) and runs
+dual SIMPLS deflation.<br />
+- Big-matrix path: block-streamed Gram computations to avoid
+materializing <span class="math inline">\(n\times n\)</span>.</p>
+<hr />
+</div>
+<div id="streaming-gram-blocks-column--and-row-chunked" class="section level2">
+<h2>Streaming Gram blocks (column- and row-chunked)</h2>
+<p>We avoid forming <span class="math inline">\(\tilde K_X\)</span>
+explicitly by accumulating blocks. Write <span class="math inline">\(K_X
+= \sum_{B} X_B X^\top\)</span> for blocks <span class="math inline">\(X_B\)</span> taken by rows
+(<em>row-chunked/XXᵗ</em>) or <span class="math inline">\(K_X = X X^\top
+= \sum_{C} X C^\top\)</span> with <em>column</em> chunks via <span class="math inline">\(X C^\top\)</span> where <span class="math inline">\(C\)</span> are column submatrices (useful for
+tall-skinny <span class="math inline">\(X\)</span>).</p>
+<p><strong>Row-chunked (XXᵗ):</strong> 1. For blocks <span class="math inline">\(B \subset \{1,\ldots,n\}\)</span>: compute <span class="math inline">\(G_B = X_B X^\top\)</span>. 2. Accumulate <span class="math inline">\(K \leftarrow K + H G_B H\)</span> on the fly when
+needed in matrix-vector products <span class="math inline">\((K
+v)\)</span> without storing full <span class="math inline">\(K\)</span>.</p>
+<p><strong>Column-chunked:</strong> 1. Partition the feature dimension
+<span class="math inline">\(p\)</span> into blocks <span class="math inline">\(J\)</span>. 2. For each block <span class="math inline">\(J\)</span>: <span class="math inline">\(G_J =
+X_{[:,J]} X_{[:,J]}^\top\)</span>. 3. Use <span class="math inline">\(G_J\)</span> to update <span class="math inline">\(K v\)</span> accumulators and to refresh deflation
+quantities (<span class="math inline">\(t, q\)</span>).</p>
+<p><strong>Memory</strong><br />
+- Row-chunked: <span class="math inline">\(O(n \cdot
+\text{chunk\_rows})\)</span>.<br />
+- Column-chunked: <span class="math inline">\(O(n \cdot
+\text{chunk\_cols})\)</span>.<br />
+Pick based on layout and cache friendliness.</p>
+<hr />
+</div>
+<div id="kernel-approximations-nyström-and-random-fourier-features" class="section level2">
+<h2>Kernel approximations: Nyström and Random Fourier Features</h2>
+<p><strong>Nyström (rank <span class="math inline">\(r\)</span>)</strong><br />
+Sample a subset <span class="math inline">\(S\)</span> of size <span class="math inline">\(r\)</span>, form <span class="math inline">\(K_{SS}\)</span> and <span class="math inline">\(K_{NS}\)</span>. Define the sketch <span class="math inline">\(Z = K_{NS} K_{SS}^{-1/2}\)</span>, so <span class="math inline">\(K \approx Z Z^\top\)</span>. Center <span class="math inline">\(Z\)</span> by subtracting row/column means. Run
+linear PLS on <span class="math inline">\(Z\)</span>.</p>
+<p><strong>RFF (RBF kernels)</strong><br />
+Draw <span class="math inline">\(\{\omega_\ell\}_{\ell=1}^r \sim
+\mathcal{N}(0,2\gamma I)\)</span> and <span class="math inline">\(b_\ell\sim \mathcal{U}[0,2\pi]\)</span>. Define
+features <span class="math inline">\(\varphi_\ell(x)=\sqrt{\tfrac{2}{r}}\cos(\omega_\ell^\top
+x + b_\ell)\)</span>, so <span class="math inline">\(k(x,z)\approx
+\varphi(x)^\top \varphi(z)\)</span>. Run linear PLS on <span class="math inline">\(\varphi(X)\)</span>.</p>
+<hr />
+</div>
+<div id="kernel-logistic-pls-binary-classification" class="section level2">
+<h2>Kernel Logistic PLS (binary classification)</h2>
+<p>We first compute KPLS scores <span class="math inline">\(T\in\mathbb{R}^{n\times a}\)</span> from <span class="math inline">\(X\)</span> vs labels <span class="math inline">\(y\in\{0,1\}\)</span>, then run logistic regression
+in latent space via IRLS:</p>
+<p>Minimize <span class="math inline">\(\ell(\beta, \beta_0) = -\sum_i
+\{ y_i\eta_i - \log(1+\exp\eta_i)\}\)</span> with <span class="math inline">\(\eta = \beta_0\mathbf{1} + T \beta\)</span>. IRLS
+step at iteration <span class="math inline">\(k\)</span>:</p>
+<p><span class="math display">\[
+W = \mathrm{diag}(p^{(k)}(1-p^{(k)})),\quad
+z = \eta^{(k)} + W^{-1}(y - p^{(k)}),\quad
+\begin{bmatrix}\beta_0\\ \beta\end{bmatrix}
+= (X_\eta^\top W X_\eta + \lambda I)^{-1} X_\eta^\top W z,
+\]</span></p>
+<p>where <span class="math inline">\(X_\eta = [\mathbf{1}, T]\)</span>
+and <span class="math inline">\(p^{(k)} = \sigma(\eta^{(k)})\)</span>.
+Optionally <strong>alternate</strong>: recompute KPLS scores with
+current residuals and re-run a few IRLS steps. Class weights <span class="math inline">\(w_c\)</span> can be injected by scaling rows of
+<span class="math inline">\(W\)</span>.</p>
+<p><strong>In bigPLSR</strong><br />
+<code>algorithm=&quot;klogitpls&quot;</code> computes <span class="math inline">\(T\)</span> (dense or streamed) then fits IRLS in
+latent space.</p>
+<hr />
+</div>
+<div id="sparse-kernel-pls-sketch" class="section level2">
+<h2>Sparse Kernel PLS (sketch)</h2>
+<p>Promote sparsity in dual or primal weights. In dual form, constrain
+<span class="math inline">\(\alpha_a\)</span> by <span class="math inline">\(\ell_1\)</span> (or group) penalty:</p>
+<p><span class="math display">\[
+\max_{\alpha}\ \mathrm{cov}(\tilde K \alpha, Y) - \lambda\|\alpha\|_1
+\quad\text{s.t.}\quad (\tilde K\alpha)^\top (\tilde K\alpha) = 1,\
+t_a^\top t_b=0\ (b&lt;a).
+\]</span></p>
+<p>A practical approach uses <em>proximal gradient</em> or
+<em>coordinate descent</em> on a smooth surrogate of covariance, with
+periodic orthogonalization of the resulting score vectors in the <span class="math inline">\(\tilde K\)</span> metric. Early stop by explained
+covariance. (The current release provides the scaffolding API.)</p>
+<hr />
+</div>
+<div id="pls-in-rkhs-for-x-and-y-double-rkhs" class="section level2">
+<h2>PLS in RKHS for X and Y (double RKHS)</h2>
+<p>Let <span class="math inline">\(K_X\)</span> and <span class="math inline">\(K_Y\)</span> be centered Grams for <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> (with small ridge <span class="math inline">\(\lambda_X,\lambda_Y\)</span> for stability). The
+cross-covariance operator is <span class="math inline">\(A = K_X (K_Y +
+\lambda_Y I) K_X\)</span>. Dual SIMPLS extracts latent directions via
+the dominant eigenspace of <span class="math inline">\(A\)</span> with
+orthogonalization under the <span class="math inline">\(K_X\)</span>
+inner product.</p>
+<p>Prediction returns dual coefficients <span class="math inline">\(\alpha\)</span> for <span class="math inline">\(X\)</span> and <span class="math inline">\(\beta\)</span> for <span class="math inline">\(Y\)</span>.</p>
+<p><strong>In bigPLSR</strong><br />
+<code>algorithm=&quot;rkhs_xy&quot;</code> wires this in dense mode; a streamed
+variant can be built by block Gram accumulations on <span class="math inline">\(K_X\)</span> and <span class="math inline">\(K_Y\)</span>.</p>
+<hr />
+</div>
+<div id="kalman-filter-pls-kf-pls-streaming" class="section level2">
+<h2>Kalman-Filter PLS (KF-PLS; streaming)</h2>
+<p>KF-PLS maintains a state that tracks latent parameters over incoming
+mini-batches. Let the state be <span class="math inline">\(s = \{w, p,
+q, b\}\)</span> for the current component, with state transition <span class="math inline">\(s_{k+1} = s_k + \epsilon_k\)</span> (random walk)
+and “measurement” formed from the current block cross-covariances (<span class="math inline">\(\widehat{X^\top t}, \widehat{Y^\top t}\)</span>).
+The Kalman update:</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\text{Predict: } \hat s_{k|k-1} = \hat s_{k-1},\ \
+P_{k|k-1}=P_{k-1}+Q \\
+&amp;\text{Innovation: } \nu_k = z_k - H_k \hat s_{k|k-1},\ \ S_k = H_k
+P_{k|k-1} H_k^\top + R \\
+&amp;\text{Gain: } K_k = P_{k|k-1} H_k^\top S_k^{-1} \\
+&amp;\text{Update: } \hat s_k = \hat s_{k|k-1} + K_k \nu_k,\ \ P_k = (I
+- K_k H_k) P_{k|k-1}.
+\end{aligned}
+\]</span></p>
+<p>After convergence (or patience stop), form <span class="math inline">\(t = X w\)</span>, normalize, and proceed to next
+component with deflation compatible with SIMPLS/NIPALS choice.</p>
+<p><strong>In bigPLSR</strong><br />
+<code>algorithm=&quot;kf_pls&quot;</code> reuses the existing <em>chunked T
+streaming</em> kernel and updates the state per block.</p>
+<hr />
+</div>
+<div id="api-quick-start" class="section level2">
+<h2>API quick start</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(bigPLSR)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co"># Dense RKHS PLS with Nyström of rank 500 (rbf kernel)</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>fit_rkhs <span class="ot">&lt;-</span> <span class="fu">pls_fit</span>(X, Y, <span class="at">ncomp =</span> <span class="dv">5</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>                    <span class="at">backend   =</span> <span class="st">&quot;arma&quot;</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>                    <span class="at">algorithm =</span> <span class="st">&quot;rkhs&quot;</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>                    <span class="at">kernel =</span> <span class="st">&quot;rbf&quot;</span>, <span class="at">gamma =</span> <span class="fl">0.5</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>                    <span class="at">approx =</span> <span class="st">&quot;nystrom&quot;</span>, <span class="at">approx_rank =</span> <span class="dv">500</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>                    <span class="at">scores =</span> <span class="st">&quot;r&quot;</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="co"># Bigmemory, kernel logistic PLS (streamed scores + IRLS)</span></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>fit_klog <span class="ot">&lt;-</span> <span class="fu">pls_fit</span>(bmX, bmy, <span class="at">ncomp =</span> <span class="dv">4</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>                    <span class="at">backend   =</span> <span class="st">&quot;bigmem&quot;</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>                    <span class="at">algorithm =</span> <span class="st">&quot;klogitpls&quot;</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>                    <span class="at">kernel =</span> <span class="st">&quot;rbf&quot;</span>, <span class="at">gamma =</span> <span class="fl">1.0</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>                    <span class="at">chunk_size =</span> <span class="dv">16384</span><span class="dt">L</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>                    <span class="at">scores =</span> <span class="st">&quot;r&quot;</span>)</span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="co"># Sparse KPLS (dense scaffold)</span></span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>fit_sk <span class="ot">&lt;-</span> <span class="fu">pls_fit</span>(X, Y, <span class="at">ncomp =</span> <span class="dv">5</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>                  <span class="at">backend =</span> <span class="st">&quot;arma&quot;</span>,</span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>                  <span class="at">algorithm =</span> <span class="st">&quot;sparse_kpls&quot;</span>)</span></code></pre></div>
+<div id="prediction-in-rkhs-pls" class="section level3">
+<h3>Prediction in RKHS PLS</h3>
+<p>Let <span class="math inline">\(X\in\mathbb{R}^{n\times p}\)</span>
+be training inputs and <span class="math inline">\(Y\in\mathbb{R}^{n\times m}\)</span> the responses.
+With kernel <span class="math inline">\(k(\cdot,\cdot)\)</span> and
+training Gram <span class="math inline">\(K\)</span>, the
+<strong>centered</strong> Gram is <span class="math display">\[
+K_c = K - \mathbf{1}_n \bar{k}^\top - \bar{k}\,\mathbf{1}_n^\top +
+\bar{\bar{k}},
+\quad
+\bar{k} = \frac{1}{n}\sum_{i=1}^n K_{i\cdot},\quad
+\bar{\bar{k}} = \frac{1}{n^2}\sum_{i,j}K_{ij}.
+\]</span> KPLS on <span class="math inline">\(K_c\)</span> yields
+<strong>dual coefficients</strong> <span class="math inline">\(A\in\mathbb{R}^{n\times m}\)</span>.</p>
+<p>For new inputs <span class="math inline">\(X_\*\)</span>, the
+cross-kernel <span class="math inline">\(K_\* \in \mathbb{R}^{n_\*\times
+n}\)</span> has <span class="math inline">\((K_\*)_{i,j} = k(x^\*_i,
+x_j)\)</span>. The <strong>centered</strong> cross-Gram is <span class="math display">\[
+K_{\*,c} = K_\* - \mathbf{1}_{n_\*}\bar{k}^\top -
+\bar{k}_\*\mathbf{1}_n^\top + \bar{\bar{k}},
+\quad
+\bar{k}_\* = \frac{1}{n}K_\*\mathbf{1}_n.
+\]</span> Predictions follow <span class="math display">\[
+\widehat{Y}_\* = K_{\*,c}\,A + \mathbf{1}_{n_\*}\,\mu_Y^\top,
+\]</span> where <span class="math inline">\(\mu_Y\)</span> is the vector
+of training response means.</p>
+<p>In <code>bigPLSR</code>, these are stored as: <code>dual_coef</code>
+(<span class="math inline">\(A\)</span>), <code>k_colmeans</code> (<span class="math inline">\(\bar{k}\)</span>), <code>k_mean</code> (<span class="math inline">\(\bar{\bar{k}}\)</span>), <code>y_means</code>
+(<span class="math inline">\(\mu_Y\)</span>), and <code>X_ref</code>
+(dense training inputs). The RKHS branch of
+<code>predict.big_plsr()</code> uses the same formula.</p>
+<hr />
+</div>
+</div>
+<div id="dependency-overview-wrappers-c-entry-points" class="section level2">
+<h2>Dependency overview (wrappers → C++ entry points)</h2>
+<pre><code>pls_fit(algorithm=&quot;simpls&quot;, backend=&quot;arma&quot;)
+  └─ .Call(&quot;_bigPLSR_cpp_simpls_from_cross&quot;)
+
+pls_fit(algorithm=&quot;simpls&quot;, backend=&quot;bigmem&quot;)
+  ├─ .Call(&quot;_bigPLSR_cpp_bigmem_cross&quot;)
+  ├─ .Call(&quot;_bigPLSR_cpp_simpls_from_cross&quot;)
+  └─ .Call(&quot;_bigPLSR_cpp_stream_scores_given_W&quot;)
+
+pls_fit(algorithm=&quot;nipals&quot;, backend=&quot;arma&quot;)
+  └─ cpp_dense_plsr_nipals()
+
+pls_fit(algorithm=&quot;nipals&quot;, backend=&quot;bigmem&quot;)
+  └─ big_plsr_stream_fit_nipals()
+
+pls_fit(algorithm=&quot;kernelpls&quot;/&quot;widekernelpls&quot;)
+  └─ .kernel_pls_core()  (R)
+
+pls_fit(algorithm=&quot;rkhs&quot;, backend=&quot;arma&quot;)
+  └─ .Call(&quot;_bigPLSR_cpp_kpls_rkhs_dense&quot;)
+
+pls_fit(algorithm=&quot;rkhs&quot;, backend=&quot;bigmem&quot;)
+  └─ .Call(&quot;_bigPLSR_cpp_kpls_rkhs_bigmem&quot;)
+
+pls_fit(algorithm=&quot;klogitpls&quot;, backend=&quot;arma&quot;)
+  └─ .Call(&quot;_bigPLSR_cpp_klogit_pls_dense&quot;)
+
+pls_fit(algorithm=&quot;klogitpls&quot;, backend=&quot;bigmem&quot;)
+  └─ .Call(&quot;_bigPLSR_cpp_klogit_pls_bigmem&quot;)
+
+pls_fit(algorithm=&quot;sparse_kpls&quot;)
+  └─ .Call(&quot;_bigPLSR_cpp_sparse_kpls_dense&quot;)
+
+pls_fit(algorithm=&quot;rkhs_xy&quot;)
+  └─ .Call(&quot;_bigPLSR_cpp_rkhs_xy_dense&quot;)
+
+pls_fit(algorithm=&quot;kf_pls&quot;)
+  └─ .Call(&quot;_bigPLSR_cpp_kf_pls_stream&quot;)</code></pre>
+<hr />
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ul>
+<li>Dayal, B., &amp; MacGregor, J.F. (1997). Improved PLS algorithms.
+<em>Journal of Chemometrics</em>, <strong>11</strong>(1), 73–85, <a href="doi:10.1002/(SICI)1099-128X(199701)11:1%3C73::AID-CEM446%3E3.0.CO;2-2" class="uri">doi:10.1002/(SICI)1099-128X(199701)11:1%3C73::AID-CEM446%3E3.0.CO;2-2</a>.</li>
+<li>Rosipal, R., &amp; Trejo, L.J. (2001). Kernel PLS regression in
+RKHS. <em>Journal of Machine Learning Research</em>, <strong>2</strong>,
+97–123, <a href="doi:10.1162/153244302760200687" class="uri">doi:10.1162/153244302760200687</a>.</li>
+<li>Tenenhaus et al., Kernel Logistic PLS.</li>
+<li>Sparse Kernel Partial Least Squares Regression. In <em>LNCS</em>
+Proceedings.</li>
+<li>Rosipal et al., RKHS PLS (JMLR) <a href="http://www.jmlr.org/papers/v2/rosipal01a.html" class="uri">http://www.jmlr.org/papers/v2/rosipal01a.html</a>.</li>
+<li>Kernel PLS Regression II (double RKHS). <em>IEEE Transactions on
+Neural Networks and Learning Systems</em>, <a href="doi:10.1109/TNNLS.2019.2932014" class="uri">doi:10.1109/TNNLS.2019.2932014</a>.</li>
+<li>KF-PLS (2024) <a href="doi:10.1016/j.chemolab.2024.104024" class="uri">doi:10.1016/j.chemolab.2024.104024</a></li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
