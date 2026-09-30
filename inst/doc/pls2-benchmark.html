@@ -11,7 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 
-<meta name="date" content="2025-11-26" />
+<meta name="date" content="2026-09-30" />
 
 <title>Benchmarking PLS2 Implementations</title>
 
@@ -343,7 +343,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <address class="author_afil">
 Cedric, Cnam, Paris<br><a class="author_email" href="mailto:#"><a href="mailto:frederic.bertrand@lecnam.net" class="email">frederic.bertrand@lecnam.net</a></a>
 </address>
-<h4 class="date">2025-11-26</h4>
+<h4 class="date">2026-09-30</h4>
 
 
 <div id="TOC">
@@ -421,21 +421,7 @@ third-party packages.</p>
 <span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>Y[,] <span class="ot">&lt;-</span> Y_mat</span>
 <span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a></span>
 <span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>X[<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>]</span>
-<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt;            [,1]         [,2]        [,3]       [,4]        [,5]       [,6]</span></span>
-<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt; [1,] -1.3435214 -0.348899457  0.70772263  1.1760806  0.05196595  0.6838164</span></span>
-<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt; [2,]  0.6217756  1.068279438 -1.17880479 -0.8208425 -1.50933535 -0.8963854</span></span>
-<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#&gt; [3,]  0.8008747 -0.005793261 -0.04600936 -0.8817557  0.17372573 -1.2315819</span></span>
-<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="co">#&gt; [4,] -1.3888924  0.560411440 -1.15682882 -1.1538845 -1.26526869 -0.3837956</span></span>
-<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="co">#&gt; [5,] -0.7143569  2.533318058 -1.47324626  0.2554595 -0.25199313  1.1685923</span></span>
-<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="co">#&gt; [6,] -0.3240611  0.436737176  0.48330946  0.2118484  0.47779676  1.1944133</span></span>
-<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a>Y[<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="dv">1</span><span class="sc">:</span><span class="fu">min</span>(<span class="dv">6</span>, q)]</span>
-<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co">#&gt;            [,1]         [,2]        [,3]</span></span>
-<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a><span class="co">#&gt; [1,]  1.8176535 -0.431537115 -0.24548255</span></span>
-<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a><span class="co">#&gt; [2,]  1.1617501 -1.573377901 -1.21506233</span></span>
-<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a><span class="co">#&gt; [3,] -0.4016607  0.412473967 -0.03420375</span></span>
-<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a><span class="co">#&gt; [4,] -0.9068912  1.328097496  0.67450957</span></span>
-<span id="cb4-31"><a href="#cb4-31" tabindex="-1"></a><span class="co">#&gt; [5,]  1.2561929 -0.839498415 -1.71712784</span></span>
-<span id="cb4-32"><a href="#cb4-32" tabindex="-1"></a><span class="co">#&gt; [6,]  0.5802884 -0.006450224  1.41649712</span></span></code></pre></div>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>Y[<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="dv">1</span><span class="sc">:</span><span class="fu">min</span>(<span class="dv">6</span>, q)]</span></code></pre></div>
 </div>
 <div id="internal-benchmarks" class="section level2">
 <h2>Internal benchmarks</h2>
@@ -451,14 +437,7 @@ third-party packages.</p>
 <span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  <span class="at">iterations =</span> <span class="dv">15</span>,</span>
 <span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  <span class="at">check =</span> <span class="cn">FALSE</span></span>
 <span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>)</span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>internal_bench</span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; # A tibble: 4 × 6</span></span>
-<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt;   expression            min   median `itr/sec` mem_alloc `gc/sec`</span></span>
-<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt;   &lt;bch:expr&gt;       &lt;bch:tm&gt; &lt;bch:tm&gt;     &lt;dbl&gt; &lt;bch:byt&gt;    &lt;dbl&gt;</span></span>
-<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; 1 dense_simpls       3.01ms   3.12ms     318.      604KB        0</span></span>
-<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; 2 streaming_simpls   1.67ms   1.69ms     590.      629KB        0</span></span>
-<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; 3 dense_nipals       9.81ms  10.07ms      99.2     571KB        0</span></span>
-<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; 4 streaming_nipals  27.92ms  28.24ms      35.4     643KB        0</span></span></code></pre></div>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>internal_bench</span></code></pre></div>
 <p>The dense path again excels when memory allows, whereas the streaming
 backend prioritises scalability via block-wise processing.</p>
 </div>

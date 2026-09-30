@@ -19,6 +19,11 @@ Matrix of component scores.
 \description{
 Predict latent scores from a PLS fit
 }
+\details{
+For RKHS fits, new rows are centered with kernel statistics learned
+from the training data. Consequently, a row's score does not depend on the
+other rows supplied in the same \code{newdata} batch.
+}
 \examples{
 set.seed(123)
 X <- matrix(rnorm(40), nrow = 10)

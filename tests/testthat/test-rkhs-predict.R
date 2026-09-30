@@ -56,3 +56,38 @@ test_that("RKHS predict (rbf, dense) matches centered cross-kernel formula", {
   
   expect_equal(pred, Yhat, tolerance = 1e-7)
 })
+
+test_that("RKHS scores use training centering and are batch invariant", {
+  set.seed(1)
+  X <- matrix(rnorm(200 * 10), 200)
+  y <- X[, 1] + sin(2 * X[, 2]) + rnorm(200, sd = 0.2)
+
+  X_train <- X[1:150, , drop = FALSE]
+  fit <- pls_fit(
+    X_train, y[1:150], ncomp = 2, algorithm = "rkhs",
+    kernel = "rbf", gamma = 0.05, scores = "r"
+  )
+
+  batch_a <- X[c(151, 152:161), , drop = FALSE]
+  batch_b <- X[c(151, 162:171), , drop = FALSE]
+  score_a <- pls_predict_scores(fit, batch_a)
+  score_b <- pls_predict_scores(fit, batch_b)
+  score_one <- pls_predict_scores(fit, X[151, , drop = FALSE])
+
+  expect_equal(score_a[1, ], score_b[1, ], tolerance = 1e-12)
+  expect_equal(score_a[1, ], score_one[1, ], tolerance = 1e-12)
+
+  K_cross <- bigPLSR:::.bigPLSR_make_kernel(
+    batch_a, X_train, fit$kernel, fit$gamma, fit$degree, fit$coef0
+  )
+  kstats <- bigPLSR:::.bigPLSR_get_train_kstats(
+    fit, fit$kernel, fit$gamma, fit$degree, fit$coef0
+  )
+  expected <- bigPLSR:::.bigPLSR_center_cross_kernel(
+    K_cross, r_train = kstats$r, g_train = kstats$g
+  ) %*% fit$u_basis
+
+  expect_equal(unname(score_a), unname(expected), tolerance = 1e-12)
+  expect_equal(unname(pls_predict_scores(fit, X_train)), unname(fit$scores), tolerance = 1e-12)
+  expect_equal(dim(pls_predict_scores(fit, batch_a, ncomp = 1)), c(nrow(batch_a), 1L))
+})

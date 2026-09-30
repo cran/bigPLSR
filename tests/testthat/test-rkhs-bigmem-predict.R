@@ -28,4 +28,18 @@ test_that("RKHS bigmem streamed predict matches dense predict", {
   
   expect_equal(dim(Yhat_b), dim(Yhat_d))
   expect_equal(Yhat_b, Yhat_d, tolerance = 1e-6)
+
+  # Score projection uses the training kernel centering statistics, so a row
+  # must not change when its prediction batch changes.
+  Xnew <- matrix(rnorm(21 * p), 21, p)
+  batch_a <- Xnew[c(1, 2:11), , drop = FALSE]
+  batch_b <- Xnew[c(1, 12:21), , drop = FALSE]
+  T_dense <- predict(fit_d, batch_a, type = "scores")
+  T_big_a <- predict(fit_b, batch_a, type = "scores")
+  T_big_b <- predict(fit_b, batch_b, type = "scores")
+  T_big_one <- predict(fit_b, Xnew[1, , drop = FALSE], type = "scores")
+
+  expect_equal(T_big_a, T_dense, tolerance = 1e-6)
+  expect_equal(T_big_a[1, ], T_big_b[1, ], tolerance = 1e-12)
+  expect_equal(T_big_a[1, ], T_big_one[1, ], tolerance = 1e-12)
 })

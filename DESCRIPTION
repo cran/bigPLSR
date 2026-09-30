@@ -1,13 +1,13 @@
 Package: bigPLSR
-Version: 0.7.2
-Date: 2025-11-26
+Version: 0.8.0
+Date: 2026-09-29
 Depends: R (>= 4.0.0)
 biocViews:
 Imports: Rcpp, bigmemory
 LinkingTo: Rcpp, RcppArmadillo, BH, bigmemory
-Suggests: bench, dplyr, forcats, future, future.apply, ggplot2, knitr,
-        pls, plsRglm, rmarkdown, RhpcBLASctl, svglite, testthat (>=
-        3.0.0), tidyr, withr
+Suggests: bench, dplyr, filematrix, forcats, future, future.apply,
+        ggplot2, knitr, pls, plsRglm, rmarkdown, RhpcBLASctl, svglite,
+        testthat (>= 3.0.0), tidyr, withr
 VignetteBuilder: knitr
 Title: Partial Least Squares Regression Models with Big Matrices
 Authors@R: c(
@@ -36,7 +36,6 @@ Description:
   Rosipal & Trejo (2001) <https://www.jmlr.org/papers/v2/rosipal01a.html>,
   Tenenhaus, Viennet, and Saporta (2007) <doi:10.1016/j.csda.2007.01.004>,
   Rosipal (2004) <doi:10.1007/978-3-540-45167-9_17>,
-  Rosipal (2019) <https://ieeexplore.ieee.org/document/8616346>,
   Song, Wang, and Bai (2024) <doi:10.1016/j.chemolab.2024.105238>.
   Includes kernel logistic PLS with 'C++'-accelerated alternating iteratively 
   reweighted least squares (IRLS) updates, streamed reproducing kernel Hilbert space (RKHS) 
@@ -55,11 +54,11 @@ URL: https://fbertran.github.io/bigPLSR/,
         https://github.com/fbertran/bigPLSR
 BugReports: https://github.com/fbertran/bigPLSR/issues
 Classification/MSC: 62N01, 62N02, 62N03, 62N99
-RoxygenNote: 7.3.3
 LazyData: true
 Config/testthat/edition: 3
 SystemRequirements: C++17, Optional CBLAS (detected at compile time)
 NeedsCompilation: yes
-Packaged: 2025-11-26 01:52:43 UTC; bertran7
+Config/roxygen2/version: 8.0.0
+Packaged: 2026-09-30 00:06:59 UTC; bertran7
 Repository: CRAN
-Date/Publication: 2025-12-01 14:50:07 UTC
+Date/Publication: 2026-09-30 16:00:02 UTC

@@ -69,7 +69,8 @@
 .bigPLSR_get_train_kstats <- function(object, kernel, gamma, degree, coef0) {
   # Prefer saved stats if present
   r <- object$k_colmeans %||% NULL
-  g <- object$k_grandmean %||% NULL
+  # Dense RKHS fits from earlier releases stored the grand mean as `k_mean`.
+  g <- object$k_grandmean %||% object$k_mean %||% NULL
   if (!is.null(r) && !is.null(g)) return(list(r = as.numeric(r), g = as.numeric(g)))
   # Else recompute from training X (dense fallback)
   Xtr <- object$X %||% object$Xtrain
@@ -386,14 +387,13 @@ predict.big_plsr <- function(object, newdata, ncomp = NULL,
       kstat <- .bigPLSR_get_train_kstats(object, kp$kernel, kp$gamma, kp$degree, kp$coef0)
       Kc    <- .bigPLSR_center_cross_kernel(Kst, r_train = kstat$r, g_train = kstat$g)
       if (identical(type, "scores")) {
-        # ---- Center-free RKHS scores: T = H K(new,train) H U
         U <- object$u_basis %||% object$U %||% stop("RKHS predict(scores): missing u_basis in fit.")
         U <- as.matrix(U)
-        # U0 = U - 1 * mean(U)  (column-wise mean)
-        U0 <- sweep(U, 2L, colMeans(U), FUN = "-")
-        V  <- Kst %*% U0
-        T  <- sweep(V, 2L, colMeans(V), FUN = "-")
-        colnames(T) <- paste0("t", seq_len(ncol(T)))
+        comps <- seq_len(min(ncomp, ncol(U)))
+        # Project with the training-centered cross-kernel.  Centering across
+        # new rows here would make a row's score depend on its scoring batch.
+        T <- Kc %*% U[, comps, drop = FALSE]
+        colnames(T) <- paste0("t", comps)
         return(T)
       } else {
         Yhatc <- Kc %*% alpha                         # m columns
@@ -406,6 +406,18 @@ predict.big_plsr <- function(object, newdata, ncomp = NULL,
       kstat <- object$kstats
       if (is.null(kstat) || is.null(kstat$r) || is.null(kstat$g)) {
         kstat <- .stream_kstats(Xtr, kp$kernel, kp$gamma, kp$degree, kp$coef0)
+      }
+      if (identical(type, "scores")) {
+        U <- object$u_basis %||% object$U %||% stop("RKHS predict(scores): missing u_basis in fit.")
+        U <- as.matrix(U)
+        comps <- seq_len(min(ncomp, ncol(U)))
+        T <- .stream_cross_apply(
+          newdata, Xtr, U[, comps, drop = FALSE],
+          kp$kernel, kp$gamma, kp$degree, kp$coef0,
+          r_train = kstat$r, g_train = kstat$g
+        )
+        colnames(T) <- paste0("t", comps)
+        return(T)
       }
       Yhatc <- .stream_cross_apply(newdata, Xtr, alpha, kp$kernel, kp$gamma, kp$degree, kp$coef0,
                                    r_train = kstat$r, g_train = kstat$g)
@@ -867,6 +879,9 @@ pls_predict_response <- function(object, newdata, ncomp = NULL) {
 #' Predict latent scores from a PLS fit
 #'
 #' @inheritParams pls_predict_response
+#' @details For RKHS fits, new rows are centered with kernel statistics learned
+#'   from the training data. Consequently, a row's score does not depend on the
+#'   other rows supplied in the same `newdata` batch.
 #' @return Matrix of component scores.
 #' @export
 #' @examples
@@ -878,4 +893,3 @@ pls_predict_response <- function(object, newdata, ncomp = NULL) {
 pls_predict_scores <- function(object, newdata, ncomp = NULL) {
   predict(object, newdata = newdata, ncomp = ncomp, type = "scores")
 }
-

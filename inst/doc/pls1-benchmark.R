@@ -36,34 +36,34 @@ X[1:6, 1:6]
 y[1:6,]
 
 ## ----internal-benchmark, eval=LOCAL, cache=TRUE-------------------------------
-internal_bench <- bench::mark(
-  dense_simpls = pls_fit(as.matrix(X[]), y_vec, ncomp = ncomp,
-                         backend = "arma", algorithm = "simpls"),
-  streaming_simpls = pls_fit(X, y, ncomp = ncomp, backend = "bigmem",
-                             algorithm = "simpls", chunk_size = 512L),
-  dense_nipals = pls_fit(as.matrix(X[]), y_vec, ncomp = ncomp,
-                         backend = "arma", algorithm = "nipals"),
-  streaming_nipals = pls_fit(X, y, ncomp = ncomp, backend = "bigmem",
-                             algorithm = "nipals", chunk_size = 512L),
-  dense_kernelpls = pls_fit(as.matrix(X[]), y_vec, ncomp = ncomp,
-                         backend = "arma", algorithm = "kernelpls"),
-  streaming_kernelpls = pls_fit(X, y, ncomp = ncomp, backend = "bigmem",
-                             algorithm = "kernelpls", chunk_size = 512L),
-  dense_widekernelpls = pls_fit(as.matrix(X[]), y_vec, ncomp = ncomp,
-                         backend = "arma", algorithm = "widekernelpls"),
-  streaming_widekernelpls = pls_fit(X, y, ncomp = ncomp, backend = "bigmem",
-                             algorithm = "widekernelpls", chunk_size = 512L),
-  iterations = 20,
-  check = FALSE
-)
-internal_bench_res <-internal_bench[,2:5]
-internal_bench_res <- as.matrix(internal_bench_res)
-rownames(internal_bench_res) <- names(internal_bench$expression)
+# internal_bench <- bench::mark(
+#   dense_simpls = pls_fit(as.matrix(X[]), y_vec, ncomp = ncomp,
+#                          backend = "arma", algorithm = "simpls"),
+#   streaming_simpls = pls_fit(X, y, ncomp = ncomp, backend = "bigmem",
+#                              algorithm = "simpls", chunk_size = 512L),
+#   dense_nipals = pls_fit(as.matrix(X[]), y_vec, ncomp = ncomp,
+#                          backend = "arma", algorithm = "nipals"),
+#   streaming_nipals = pls_fit(X, y, ncomp = ncomp, backend = "bigmem",
+#                              algorithm = "nipals", chunk_size = 512L),
+#   dense_kernelpls = pls_fit(as.matrix(X[]), y_vec, ncomp = ncomp,
+#                          backend = "arma", algorithm = "kernelpls"),
+#   streaming_kernelpls = pls_fit(X, y, ncomp = ncomp, backend = "bigmem",
+#                              algorithm = "kernelpls", chunk_size = 512L),
+#   dense_widekernelpls = pls_fit(as.matrix(X[]), y_vec, ncomp = ncomp,
+#                          backend = "arma", algorithm = "widekernelpls"),
+#   streaming_widekernelpls = pls_fit(X, y, ncomp = ncomp, backend = "bigmem",
+#                              algorithm = "widekernelpls", chunk_size = 512L),
+#   iterations = 20,
+#   check = FALSE
+# )
+# internal_bench_res <-internal_bench[,2:5]
+# internal_bench_res <- as.matrix(internal_bench_res)
+# rownames(internal_bench_res) <- names(internal_bench$expression)
 
 ## ----internal-benchmark-plot, eval=LOCAL, cache=TRUE--------------------------
-dotchart(internal_bench_res[,2], labels=rownames(internal_bench_res),xlab="median_time_s")
-dotchart(internal_bench_res[,3], labels=rownames(internal_bench_res),xlab="itr_per_sec")
-dotchart(internal_bench_res[,4], labels=rownames(internal_bench_res),xlab="mem_alloc_bytes")
+# dotchart(internal_bench_res[,2], labels=rownames(internal_bench_res),xlab="median_time_s")
+# dotchart(internal_bench_res[,3], labels=rownames(internal_bench_res),xlab="itr_per_sec")
+# dotchart(internal_bench_res[,4], labels=rownames(internal_bench_res),xlab="mem_alloc_bytes")
 
 ## ----external-benchmark-------------------------------------------------------
 data("external_pls_benchmarks", package = "bigPLSR")

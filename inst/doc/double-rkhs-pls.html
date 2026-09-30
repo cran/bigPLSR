@@ -11,7 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 
-<meta name="date" content="2025-11-26" />
+<meta name="date" content="2026-09-30" />
 
 <title>Double RKHS PLS (rkhs_xy): Theory and Usage</title>
 
@@ -344,7 +344,7 @@ Usage</h1>
 <address class="author_afil">
 Cedric, Cnam, Paris<br><a class="author_email" href="mailto:#"><a href="mailto:frederic.bertrand@lecnam.net" class="email">frederic.bertrand@lecnam.net</a></a>
 </address>
-<h4 class="date">2025-11-26</h4>
+<h4 class="date">2026-09-30</h4>
 
 
 <div id="TOC">
@@ -458,8 +458,7 @@ y\)</span>,</li>
 <span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a></span>
 <span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">pls_fit</span>(X, Y, <span class="at">ncomp =</span> <span class="dv">3</span>, <span class="at">algorithm =</span> <span class="st">&quot;rkhs_xy&quot;</span>, <span class="at">backend =</span> <span class="st">&quot;arma&quot;</span>)</span>
 <span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>Yhat <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit, X)</span>
-<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="fu">mean</span>((Y <span class="sc">-</span> Yhat)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="co">#&gt; [1] 2.619847e-12</span></span></code></pre></div>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="fu">mean</span>((Y <span class="sc">-</span> Yhat)<span class="sc">^</span><span class="dv">2</span>)</span></code></pre></div>
 <p>References • Rosipal &amp; Trejo (2001) Kernel Partial Least Squares
 Regression in Reproducing Kernel Hilbert Space. JMLR 2:97–123. <a href="doi:10.5555/944733.944741" class="uri">doi:10.5555/944733.944741</a>. • Kernel PLS Regression II:
 Kernel Partial Least Squares Regression by Projecting Both Independent

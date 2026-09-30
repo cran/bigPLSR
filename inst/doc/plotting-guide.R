@@ -26,29 +26,29 @@ groups <- factor(rep(LETTERS[1:4], length.out = n))
 fit <- pls_fit(X, Y, ncomp = 3, scores = "r")
 
 ## ----scores-ellipse, eval=LOCAL, cache=TRUE-----------------------------------
-plot_pls_individuals(fit, comps = c(1, 2), groups = groups,
-                     ellipse = TRUE, ellipse_level = 0.90, 
-                     main="Component scores with 90% ellipses")
+# plot_pls_individuals(fit, comps = c(1, 2), groups = groups,
+#                      ellipse = TRUE, ellipse_level = 0.90,
+#                      main="Component scores with 90% ellipses")
 
 ## ----variables, eval=LOCAL, cache=TRUE----------------------------------------
-plot_pls_variables(fit, comps = c(1, 2), main="Variable plot")
+# plot_pls_variables(fit, comps = c(1, 2), main="Variable plot")
 
 ## ----biplot, eval=LOCAL, cache=TRUE-------------------------------------------
-plot_pls_biplot(fit, comps = c(1, 2), groups = groups,
-                ellipse = TRUE, ellipse_level = 0.90, 
-                main="Biplot with grouped individuals")
+# plot_pls_biplot(fit, comps = c(1, 2), groups = groups,
+#                 ellipse = TRUE, ellipse_level = 0.90,
+#                 main="Biplot with grouped individuals")
 
 ## ----bootstrap, eval=LOCAL, cache=TRUE----------------------------------------
-boot <- pls_bootstrap(X, Y, ncomp = 2, R = 30, type = "xy",
-                      parallel = "none", seed = 99)
-summary_boot <- summarise_pls_bootstrap(boot)
-summary_boot
+# boot <- pls_bootstrap(X, Y, ncomp = 2, R = 30, type = "xy",
+#                       parallel = "none", seed = 99)
+# summary_boot <- summarise_pls_bootstrap(boot)
+# summary_boot
 
 ## ----bootstrap-coef, eval=LOCAL, cache=TRUE-----------------------------------
-plot_pls_bootstrap_coefficients(boot, main="Bootstrap coefficient intervals")
+# plot_pls_bootstrap_coefficients(boot, main="Bootstrap coefficient intervals")
 
 ## ----bootstrap-scores, eval=LOCAL, cache=TRUE---------------------------------
-boot <- pls_bootstrap(X, Y, ncomp = 2, R = 30, type = "xy", 
-                      parallel = "none", seed = 99, return_scores = TRUE)
-plot_pls_bootstrap_scores(boot,main="Bootstrap score dispersion")
+# boot <- pls_bootstrap(X, Y, ncomp = 2, R = 30, type = "xy",
+#                       parallel = "none", seed = 99, return_scores = TRUE)
+# plot_pls_bootstrap_scores(boot,main="Bootstrap score dispersion")
 
